@@ -1,35 +1,46 @@
+import { useEffect, useState } from "react";
 import classes from "./AvailableMeals.module.css";
 import Card from "../UI/Card";
 import MealItem from "./MealItem/MealItem";
-const MENU = [
-  {
-    id: "m1",
-    name: "Chicken Kebab",
-    description: "Fresh Chicken and veggies",
-    price: 6900,
-  },
-  {
-    id: "m2",
-    name: "Somun Chicken",
-    description: "Big bread with veggies",
-    price: 8900,
-  },
-  {
-    id: "m3",
-    name: "Chicken Rice Plate",
-    description: "Chicken, rice and veggies",
-    price: 9900,
-  },
-  {
-    id: "m4",
-    name: "Chicken Box",
-    description: "Chicken, rice and potatos",
-    price: 7900,
-  },
-];
 
 const AvailableMeals = () => {
-  const mealsList = MENU.map((meal) => (
+  const [meals, setMeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        "https://troy-kebab-food-order-default-rtdb.asia-southeast1.firebasedatabase.app/meals.json"
+      );
+
+      if (!response.ok) {
+        throw new Error("something went wrong");
+      }
+      const responseData = await response.json();
+      const loadedMeals = [];
+      for (const key in responseData) {
+        loadedMeals.push({
+          id: key,
+          name: responseData[key].name,
+          description: responseData[key].description,
+          price: responseData[key].price,
+        });
+      }
+      setMeals(loadedMeals);
+      setIsLoading(false);
+    };
+    fetchData().catch((error) => {
+      setIsLoading(false);
+      setError(error.message);
+    });
+  }, []);
+  if (isLoading) {
+    return <p className={classes.mealsLoading}>Loading....</p>;
+  }
+  if (error) {
+    return <p className={classes.mealsLoading}>{error}</p>;
+  }
+  const mealsList = meals.map((meal) => (
     <MealItem
       id={meal.id}
       key={meal.id}
